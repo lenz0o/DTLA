@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Products{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-4">
+  <h2 class="mb-0">Products</h2>
+  <a href="{{ url_for('product_add') }}" class="btn btn-success">Add Product</a>
+</div>
+<div class="table-card">
+<table class="table table-hover mb-0">
+<thead><tr><th>SKU</th><th>Name</th><th>Category</th><th>Type</th><th class="text-end">Cost</th><th class="text-end">Retail</th><th></th></tr></thead>
+<tbody>
+{% for p in products %}
+<tr>
+  <td>{{ p.sku }}</td>
+  <td>{{ p.name }}</td>
+  <td>{{ p.category }}</td>
+  <td>{{ p.product_type or '—' }}</td>
+  <td class="text-end">${{ "%.2f"|format(p.unit_cost or 0) }}</td>
+  <td class="text-end">${{ "%.2f"|format(p.retail_price or 0) }}</td>
+  <td><a href="{{ url_for('product_edit', pid=p.id) }}" class="btn btn-sm btn-outline-secondary">Edit</a></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}
