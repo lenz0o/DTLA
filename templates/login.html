@@ -1,37 +1,147 @@
 {% extends "base.html" %}
-{% block title %}Login – Farmer Direct Inventory{% endblock %}
+{% block title %}Login – Farmer Direct{% endblock %}
 {% block auth_content %}
-<div class="container">
-  <div class="row justify-content-center align-items-center min-vh-100">
-    <div class="col-md-5 col-lg-4">
-      <div class="card shadow border-0">
-        <div class="card-body p-4">
-          <div class="text-center mb-4">
-            <img src="{{ url_for('static', filename='735AC30A-7CB4-4D29-AA0A-AC40A071EE3B.PNG') }}" alt="Farmer Direct" style="height:140px; width:140px; object-fit:contain;">
-            <h3 class="mt-3 mb-0">Farmer Direct</h3>
-            <p class="text-muted">Inventory Control Center</p>
-          </div>
-          {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-              {% for category, message in messages %}
-                <div class="alert alert-{{ category }} py-2">{{ message }}</div>
-              {% endfor %}
-            {% endif %}
-          {% endwith %}
-          <form method="post">
-            <div class="mb-3">
-              <label class="form-label">Username</label>
-              <input type="text" name="username" class="form-control" required autofocus>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Password</label>
-              <input type="password" name="password" class="form-control" required>
-            </div>
-            <button type="submit" class="btn btn-success w-100">Sign In</button>
-          </form>
+<style>
+  body {
+    margin: 0;
+    background:
+      linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.65)),
+      #0b0d12;
+    min-height: 100vh;
+    color: #fff;
+    font-family: Georgia, "Times New Roman", serif;
+  }
+  .login-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    position: relative;
+  }
+  .quote {
+    position: absolute;
+    top: 28px;
+    right: 36px;
+    max-width: 280px;
+    text-align: right;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #e8e8e8;
+  }
+  .quote:after {
+    content: "";
+    display: block;
+    width: 70px;
+    height: 1px;
+    background: #c9a227;
+    margin: 10px 0 0 auto;
+  }
+  .login-box {
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+  }
+  .logo {
+    width: 170px;
+    height: 170px;
+    object-fit: contain;
+    margin-bottom: 18px;
+  }
+  .login-box h1 {
+    font-size: 48px;
+    font-weight: 500;
+    margin: 0;
+  }
+  .subtitle {
+    letter-spacing: 4px;
+    font-size: 12px;
+    color: #ddd;
+    margin: 10px 0 22px;
+  }
+  .card-dark {
+    background: rgba(12,12,12,.82);
+    border: 1px solid rgba(201,162,39,.35);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: left;
+  }
+  .card-dark label {
+    font-size: 13px;
+    color: #ccc;
+  }
+  .card-dark input {
+    background: #161616;
+    border: 1px solid #333;
+    color: #fff;
+  }
+  .card-dark input:focus {
+    background: #161616;
+    color: #fff;
+    border-color: #c9a227;
+    box-shadow: none;
+  }
+  .gold-btn {
+    background: linear-gradient(#e0c56a, #c9a227);
+    border: none;
+    color: #111;
+    font-weight: 700;
+    width: 100%;
+    padding: 12px;
+  }
+  .gold-btn:hover { background: #d4b24a; color: #111; }
+  .footer-line {
+    margin-top: 16px;
+    text-align: center;
+    letter-spacing: 3px;
+    font-size: 11px;
+    color: #c9a227;
+  }
+  .est {
+    position: absolute;
+    bottom: 20px;
+    right: 28px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #ddd;
+  }
+</style>
+
+<div class="login-wrap">
+  <div class="quote">
+    The greatest wealth is having God,<br>
+    a healthy body, a peaceful mind, and<br>
+    the right people in your life.
+  </div>
+
+  <div class="login-box">
+    <img class="logo" src="{{ url_for('static', filename='735AC30A-7CB4-4D29-AA0A-AC40A071EE3B.PNG') }}" alt="Farmer Direct">
+    <h1>Farmer Direct</h1>
+    <div class="subtitle">INVENTORY CONTROL CENTER</div>
+
+    <div class="card-dark">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} py-2">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" required autofocus>
         </div>
-      </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn gold-btn">Sign In →</button>
+      </form>
+      <div class="footer-line">GROW &nbsp;|&nbsp; MANAGE &nbsp;|&nbsp; PROSPER</div>
     </div>
   </div>
+
+  <div class="est">EST. 2024</div>
 </div>
 {% endblock %}
