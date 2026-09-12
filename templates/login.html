@@ -5,8 +5,8 @@
   body {
     margin: 0;
     background:
-      linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.65)),
-      #0b0d12;
+      linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.55)),
+      url("{{ url_for('static', filename='BDE18CB5-3050-4CA1-90AA-C4AE2507D6A5.PNG') }}") center center / cover no-repeat;
     min-height: 100vh;
     color: #fff;
     font-family: Georgia, "Times New Roman", serif;
@@ -18,24 +18,6 @@
     justify-content: center;
     padding: 24px;
     position: relative;
-  }
-  .quote {
-    position: absolute;
-    top: 28px;
-    right: 36px;
-    max-width: 280px;
-    text-align: right;
-    font-size: 13px;
-    line-height: 1.5;
-    color: #e8e8e8;
-  }
-  .quote:after {
-    content: "";
-    display: block;
-    width: 70px;
-    height: 1px;
-    background: #c9a227;
-    margin: 10px 0 0 auto;
   }
   .login-box {
     width: 100%;
@@ -66,10 +48,7 @@
     padding: 24px;
     text-align: left;
   }
-  .card-dark label {
-    font-size: 13px;
-    color: #ccc;
-  }
+  .card-dark label { font-size: 13px; color: #ccc; }
   .card-dark input {
     background: #161616;
     border: 1px solid #333;
@@ -108,8 +87,6 @@
 </style>
 
 <div class="login-wrap">
-
-
   <div class="login-box">
     <img class="logo" src="{{ url_for('static', filename='735AC30A-7CB4-4D29-AA0A-AC40A071EE3B.PNG') }}" alt="Farmer Direct">
     <h1>Farmer Direct</h1>
@@ -137,7 +114,6 @@
       <div class="footer-line">GROW &nbsp;|&nbsp; MANAGE &nbsp;|&nbsp; PROSPER</div>
     </div>
   </div>
-
   <div class="est">EST. 2024</div>
 </div>
 {% endblock %}
