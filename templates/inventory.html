@@ -3,13 +3,22 @@
 {% block content %}
 <h2 class="mb-4">Current Inventory</h2>
 <div class="table-card">
-<table class="table table-hover mb-0">
-<thead><tr><th>SKU</th><th>Product</th><th>Category</th><th>Batch</th><th>Location</th><th class="text-end">Qty</th><th>Status</th></tr></thead>
+<table class="table table-hover mb-0 align-middle">
+<thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Batch</th><th>Location</th><th class="text-end">Qty</th><th>Status</th></tr></thead>
 <tbody>
 {% for i in items %}
 <tr>
+  <td>
+    <div style="display:flex; align-items:center; gap:12px;">
+      {% if i.image_url %}
+        <img src="{{ url_for('product_image', filename=i.image_url) }}" alt="" style="height:48px;width:48px;object-fit:cover;border-radius:8px;">
+      {% else %}
+        <div style="height:48px;width:48px;background:#eee;border-radius:8px;"></div>
+      {% endif %}
+      <strong>{{ i.name }}</strong>
+    </div>
+  </td>
   <td>{{ i.sku }}</td>
-  <td>{{ i.name }}</td>
   <td>{{ i.category }}</td>
   <td>{{ i.batch_lot or '—' }}</td>
   <td>{{ i.location_name }}</td>
