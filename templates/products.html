@@ -6,13 +6,22 @@
   <a href="{{ url_for('product_add') }}" class="btn btn-success">Add Product</a>
 </div>
 <div class="table-card">
-<table class="table table-hover mb-0">
-<thead><tr><th>SKU</th><th>Name</th><th>Category</th><th>Type</th><th class="text-end">Cost</th><th class="text-end">Retail</th><th></th></tr></thead>
+<table class="table table-hover mb-0 align-middle">
+<thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Type</th><th class="text-end">Cost</th><th class="text-end">Retail</th><th></th></tr></thead>
 <tbody>
 {% for p in products %}
 <tr>
+  <td>
+    <div style="display:flex; align-items:center; gap:12px;">
+      {% if p.image_url %}
+        <img src="{{ url_for('product_image', filename=p.image_url) }}" alt="" style="height:56px;width:56px;object-fit:cover;border-radius:8px; flex-shrink:0;">
+      {% else %}
+        <div style="height:56px;width:56px;background:#eee;border-radius:8px; flex-shrink:0;"></div>
+      {% endif %}
+      <strong>{{ p.name }}</strong>
+    </div>
+  </td>
   <td>{{ p.sku }}</td>
-  <td>{{ p.name }}</td>
   <td>{{ p.category }}</td>
   <td>{{ p.product_type or '—' }}</td>
   <td class="text-end">${{ "%.2f"|format(p.unit_cost or 0) }}</td>
