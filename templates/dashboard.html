@@ -30,6 +30,21 @@
   </div>
 </div>
 
+<div class="row g-3 mb-4">
+  <div class="col-lg-7">
+    <div class="table-card p-3">
+      <div class="fw-semibold mb-2">Value by Category</div>
+      <canvas id="barChart" height="220"></canvas>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="table-card p-3">
+      <div class="fw-semibold mb-2">Share of Value</div>
+      <canvas id="pieChart" height="220"></canvas>
+    </div>
+  </div>
+</div>
+
 <div class="row g-3">
   <div class="col-lg-6">
     <div class="table-card">
@@ -71,4 +86,24 @@
     </div>
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const labels = [{% for row in by_category %}"{{ row.category }}"{% if not loop.last %},{% endif %}{% endfor %}];
+  const values = [{% for row in by_category %}{{ row.value or 0 }}{% if not loop.last %},{% endif %}{% endfor %}];
+  const colors = ["#c9a227","#1a5f2a","#0b1f3a","#8b1e3f","#4b5563","#b45309"];
+
+  if (labels.length) {
+    new Chart(document.getElementById("barChart"), {
+      type: "bar",
+      data: { labels, datasets: [{ label: "Value $", data: values, backgroundColor: "#c9a227" }] },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+    new Chart(document.getElementById("pieChart"), {
+      type: "doughnut",
+      data: { labels, datasets: [{ data: values, backgroundColor: colors }] },
+      options: { plugins: { legend: { position: "bottom" } } }
+    });
+  }
+</script>
 {% endblock %}
