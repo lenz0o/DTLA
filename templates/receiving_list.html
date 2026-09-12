@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Receiving{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-4">
+  <h2 class="mb-0">Receiving</h2>
+  <a href="{{ url_for('receiving_add') }}" class="btn btn-success">New Receipt</a>
+</div>
+<div class="table-card">
+<table class="table table-hover mb-0">
+<thead><tr><th>ID</th><th>Date</th><th>Supplier</th><th>Product</th><th>Batch</th><th>Location</th><th class="text-end">Qty</th><th class="text-end">Total</th></tr></thead>
+<tbody>
+{% for r in records %}
+<tr>
+  <td>{{ r.receipt_id }}</td>
+  <td>{{ r.date }}</td>
+  <td>{{ r.supplier or '—' }}</td>
+  <td>{{ r.product_name or '—' }}</td>
+  <td>{{ r.batch_lot or '—' }}</td>
+  <td>{{ r.location_name or '—' }}</td>
+  <td class="text-end">{{ r.qty_received }}</td>
+  <td class="text-end">${{ "%.2f"|format(r.total_cost or 0) }}</td>
+</tr>
+{% else %}
+<tr><td colspan="8" class="text-center text-muted py-4">No receiving yet</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}
