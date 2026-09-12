@@ -1,60 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Farmer Direct Inventory{% endblock %}</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <style>
-    body { background: #f4f6f9; min-height: 100vh; }
-    .sidebar { width: 240px; background: #1e2a24; min-height: 100vh; position: fixed; top: 0; left: 0; padding-top: 1rem; }
-    .sidebar .nav-link { color: #c8d6c9; border-radius: .375rem; margin: .15rem .75rem; padding: .55rem .9rem; }
-    .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #1a5f2a; color: #fff; }
-    .sidebar .brand { color: #fff; font-weight: 700; padding: .5rem 1.25rem 1.25rem; }
-    .main { margin-left: 240px; padding: 1.5rem; }
-    .stat-card, .table-card { background: #fff; border-radius: .75rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-    .stat-value { font-size: 1.75rem; font-weight: 700; }
-    .badge-low { background: #ffc107; color: #000; }
-    .badge-out { background: #dc3545; }
-    .badge-ok { background: #198754; }
-    @media (max-width: 768px) { .sidebar { position: relative; width: 100%; min-height: auto; } .main { margin-left: 0; } }
-  </style>
-</head>
-<body>
-  {% if current_user.is_authenticated %}
-  <div class="d-flex">
-    <nav class="sidebar">
-      <div class="brand"><i class="bi bi-box-seam"></i> Farmer Direct</div>
-      <ul class="nav flex-column">
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('inventory') }}">Inventory</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('products') }}">Products</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('receiving_list') }}">Receiving</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('transfers_list') }}">Sales / Transfers</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('waste_list') }}">Waste / Adjust</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('locations') }}">Locations</a></li>
-        {% if current_user.role == 'admin' %}
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('users_page') }}">Users</a></li>
-        {% endif %}
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
-      </ul>
-      <div class="px-3 mt-4 text-muted small">{{ current_user.full_name or current_user.username }}</div>
-    </nav>
-    <main class="main flex-grow-1">
+{% extends "base.html" %}
+{% block title %}Login – Farmer Direct{% endblock %}
+{% block auth_content %}
+<style>
+  body {
+    margin: 0;
+    background:
+      linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.55)),
+      url("{{ url_for('static', filename='BDE18CB5-3050-4CA1-90AA-C4AE2507D6A5.PNG') }}") center center / cover no-repeat;
+    min-height: 100vh;
+    color: #fff;
+  }
+  .login-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    position: relative;
+  }
+  .login-box { width: 100%; max-width: 420px; text-align: center; }
+  .logo { width: 170px; height: 170px; object-fit: contain; margin-bottom: 18px; }
+  .login-box h1 { font-size: 48px; font-weight: 500; margin: 0; }
+  .subtitle { letter-spacing: 4px; font-size: 12px; color: #ddd; margin: 10px 0 22px; }
+  .card-dark {
+    background: rgba(12,12,12,.82);
+    border: 1px solid rgba(201,162,39,.35);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: left;
+  }
+  .card-dark label { font-size: 13px; color: #ccc; }
+  .card-dark input { background: #161616; border: 1px solid #333; color: #fff; }
+  .card-dark input:focus { background: #161616; color: #fff; border-color: #c9a227; box-shadow: none; }
+  .gold-btn {
+    background: linear-gradient(#e0c56a, #c9a227);
+    border: none;
+    color: #111;
+    font-weight: 700;
+    width: 100%;
+    padding: 12px;
+  }
+  .gold-btn:hover { background: #d4b24a; color: #111; }
+  .footer-line { margin-top: 16px; text-align: center; letter-spacing: 3px; font-size: 11px; color: #c9a227; }
+  .est { position: absolute; bottom: 20px; right: 28px; font-size: 12px; letter-spacing: 2px; color: #ddd; }
+</style>
+
+<div class="login-wrap">
+  <div class="login-box">
+    <img class="logo" src="{{ url_for('static', filename='735AC30A-7CB4-4D29-AA0A-AC40A071EE3B.PNG') }}" alt="Farmer Direct">
+    <h1>Farmer Direct</h1>
+    <div class="subtitle">INVENTORY CONTROL CENTER</div>
+    <div class="card-dark">
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
+            <div class="alert alert-{{ category }} py-2">{{ message }}</div>
           {% endfor %}
         {% endif %}
       {% endwith %}
-      {% block content %}{% endblock %}
-    </main>
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" required autofocus>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn gold-btn">Sign In →</button>
+      </form>
+      <div class="footer-line">GROW &nbsp;|&nbsp; MANAGE &nbsp;|&nbsp; PROSPER</div>
+    </div>
   </div>
-  {% else %}
-    {% block auth_content %}{% endblock %}
-  {% endif %}
-</body>
-</html>
+  <div class="est">EST. 2024</div>
+</div>
+{% endblock %}
