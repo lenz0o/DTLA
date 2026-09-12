@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Locations{% endblock %}
+{% block content %}
+<h2 class="mb-4">Storage Locations</h2>
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="table-card">
+      <table class="table table-hover mb-0">
+        <thead><tr><th>Name</th><th>Area</th><th>Type</th></tr></thead>
+        <tbody>
+          {% for l in locations %}
+          <tr>
+            <td>{{ l.name }}</td>
+            <td>{{ l.area or '—' }}</td>
+            <td>{{ l.storage_type or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <form method="post" action="{{ url_for('location_add') }}" class="card p-3">
+      <h5>Add Location</h5>
+      <div class="mb-2"><label class="form-label">Name</label><input name="name" class="form-control" required></div>
+      <div class="mb-2"><label class="form-label">Area</label><input name="area" class="form-control"></div>
+      <div class="mb-2"><label class="form-label">Storage Type</label><input name="storage_type" class="form-control"></div>
+      <button class="btn btn-success">Add Location</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
