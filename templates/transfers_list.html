@@ -6,7 +6,7 @@
   <a href="{{ url_for('transfers_add') }}" class="btn btn-success">New Transaction</a>
 </div>
 <div class="table-card">
-<table class="table table-hover mb-0">
+<table class="table table-hover mb-0 align-middle">
 <thead><tr><th>Date</th><th>Type</th><th>From</th><th>To</th><th>Product</th><th>Batch</th><th class="text-end">Qty</th></tr></thead>
 <tbody>
 {% for t in records %}
@@ -15,7 +15,14 @@
   <td>{{ t.type }}</td>
   <td>{{ t.from_location or '—' }}</td>
   <td>{{ t.to_location_or_customer or '—' }}</td>
-  <td>{{ t.product_name or '—' }}</td>
+  <td>
+    <div style="display:flex; align-items:center; gap:10px;">
+      {% if t.image_url %}
+        <img src="{{ url_for('product_image', filename=t.image_url) }}" alt="" style="height:40px;width:40px;object-fit:cover;border-radius:8px;">
+      {% endif %}
+      <span>{{ t.product_name or '—' }}</span>
+    </div>
+  </td>
   <td>{{ t.batch_lot or '—' }}</td>
   <td class="text-end">{{ t.qty_out }}</td>
 </tr>
