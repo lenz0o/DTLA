@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<h2 class="mb-4">Inventory Reports</h2>
+<p class="text-muted">Downloads open in Excel. Each file includes current stock plus receiving, sales, and waste for that period.</p>
+
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="table-card p-4 text-center">
+      <h5>Daily</h5>
+      <p class="small text-muted">Today</p>
+      <a class="btn btn-success" href="{{ url_for('download_report', period='daily') }}">Download</a>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="table-card p-4 text-center">
+      <h5>Weekly</h5>
+      <p class="small text-muted">Last 7 days</p>
+      <a class="btn btn-success" href="{{ url_for('download_report', period='weekly') }}">Download</a>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="table-card p-4 text-center">
+      <h5>Monthly</h5>
+      <p class="small text-muted">Last 30 days</p>
+      <a class="btn btn-success" href="{{ url_for('download_report', period='monthly') }}">Download</a>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="table-card p-4 text-center">
+      <h5>Yearly</h5>
+      <p class="small text-muted">Last 365 days</p>
+      <a class="btn btn-success" href="{{ url_for('download_report', period='yearly') }}">Download</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
