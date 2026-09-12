@@ -3,12 +3,14 @@
 Farmer Direct Inventory System - Production ready version
 """
 
-from flask import Flask, render_template, request, redirect, url_for, flash, g
+from flask import Flask, render_template, request, redirect, url_for, flash, g, Response
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import sqlite3
 import os
+import csv
+import io
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "farmer-direct-change-this-in-production-2026")
@@ -528,11 +530,104 @@ def users_page():
 def health():
     return "OK", 200
 
+@app.route("/reports")
+@login_required
+def reports():
+    return render_template("reports.html")
+
+@app.route("/reports/download/<period>")
+@login_required
+def download_report(period):
+    today = date.today()
+    if period == "daily":
+        start = today
+    elif period == "weekly":
+        start = today - timedelta(days=7)
+    elif period == "monthly":
+        start = today - timedelta(days=30)
+    else:
+        period = "yearly"
+        start = today - timedelta(days=365)
+    start_s = start.isoformat()
+    end_s = today.isoformat()
+    db = get_db()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["FARMER DIRECT INVENTORY REPORT"])
+    writer.writerow(["Period", period])
+    writer.writerow(["From", start_s])
+    writer.writerow(["To", end_s])
+    writer.writerow([])
+    writer.writerow(["CURRENT INVENTORY"])
+    writer.writerow(["SKU", "Product", "Category", "Batch", "Location", "Qty", "Unit Cost", "Value", "Status"])
+    rows = db.execute("""
+        SELECT p.sku, p.name, p.category, i.batch_lot, l.name as location_name,
+               i.qty_on_hand, i.unit_cost, i.status
+        FROM inventory i
+        JOIN products p ON p.id = i.product_id
+        JOIN locations l ON l.id = i.location_id
+        ORDER BY p.category, p.name
+    """).fetchall()
+    total_value = 0
+    for r in rows:
+        value = (r["qty_on_hand"] or 0) * (r["unit_cost"] or 0)
+        total_value += value
+        writer.writerow([r["sku"], r["name"], r["category"], r["batch_lot"], r["location_name"],
+                         r["qty_on_hand"], r["unit_cost"], round(value, 2), r["status"]])
+    writer.writerow(["TOTAL VALUE", "", "", "", "", "", "", round(total_value, 2), ""])
+    writer.writerow([])
+    writer.writerow(["RECEIVING"])
+    writer.writerow(["Date", "Supplier", "SKU", "Product", "Batch", "Location", "Qty", "Total Cost"])
+    rec = db.execute("""
+        SELECT r.date, r.supplier, p.sku, p.name, r.batch_lot, l.name as location_name,
+               r.qty_received, r.total_cost
+        FROM receiving r
+        LEFT JOIN products p ON p.id = r.product_id
+        LEFT JOIN locations l ON l.id = r.location_id
+        WHERE r.date >= ? AND r.date <= ?
+        ORDER BY r.date
+    """, (start_s, end_s)).fetchall()
+    for r in rec:
+        writer.writerow([r["date"], r["supplier"], r["sku"], r["name"], r["batch_lot"],
+                         r["location_name"], r["qty_received"], r["total_cost"]])
+    writer.writerow([])
+    writer.writerow(["SALES / TRANSFERS"])
+    writer.writerow(["Date", "Type", "From", "To", "SKU", "Product", "Batch", "Qty", "Value"])
+    tx = db.execute("""
+        SELECT t.date, t.type, l.name as from_location, t.to_location_or_customer,
+               p.sku, p.name, t.batch_lot, t.qty_out, t.value_moved
+        FROM transfers_sales t
+        LEFT JOIN products p ON p.id = t.product_id
+        LEFT JOIN locations l ON l.id = t.from_location_id
+        WHERE t.date >= ? AND t.date <= ?
+        ORDER BY t.date
+    """, (start_s, end_s)).fetchall()
+    for r in tx:
+        writer.writerow([r["date"], r["type"], r["from_location"], r["to_location_or_customer"],
+                         r["sku"], r["name"], r["batch_lot"], r["qty_out"], r["value_moved"]])
+    writer.writerow([])
+    writer.writerow(["WASTE / ADJUSTMENTS"])
+    writer.writerow(["Date", "Type", "SKU", "Product", "Batch", "Location", "Qty", "Reason"])
+    waste = db.execute("""
+        SELECT w.date, w.type, p.sku, p.name, w.batch_lot, l.name as location_name, w.qty, w.reason
+        FROM waste_adjustments w
+        LEFT JOIN products p ON p.id = w.product_id
+        LEFT JOIN locations l ON l.id = w.location_id
+        WHERE w.date >= ? AND w.date <= ?
+        ORDER BY w.date
+    """, (start_s, end_s)).fetchall()
+    for r in waste:
+        writer.writerow([r["date"], r["type"], r["sku"], r["name"], r["batch_lot"],
+                         r["location_name"], r["qty"], r["reason"]])
+    filename = f"farmer-direct-{period}-report-{end_s}.csv"
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
 if __name__ == "__main__":
     init_db()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
-from flask import Flask, render_template, request, redirect, url_for, flash, g, Response
-from datetime import datetime, date, timedelta
-import csv
-import io
