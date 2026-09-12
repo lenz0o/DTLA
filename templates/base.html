@@ -38,6 +38,7 @@
         <li class="nav-item"><a class="nav-link" href="{{ url_for('transfers_list') }}">Sales / Transfers</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('waste_list') }}">Waste / Adjust</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('locations') }}">Locations</a></li>
+        <li class="nav-item"><a class="nav-link" href="/reports">Reports</a></li>
         {% if current_user.role == 'admin' %}
         <li class="nav-item"><a class="nav-link" href="{{ url_for('users_page') }}">Users</a></li>
         {% endif %}
