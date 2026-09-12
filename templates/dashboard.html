@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – Farmer Direct{% endblock %}
+{% block content %}
+<h2 class="mb-4">Inventory Control Center</h2>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card stat-card"><div class="card-body">
+      <div class="text-muted small">Total Inventory Value</div>
+      <div class="stat-value text-success">${{ "%.2f"|format(total_value) }}</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card"><div class="card-body">
+      <div class="text-muted small">Units On Hand</div>
+      <div class="stat-value">{{ "%.1f"|format(total_units) }}</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card"><div class="card-body">
+      <div class="text-muted small">Low Stock Items</div>
+      <div class="stat-value text-warning">{{ low_stock }}</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card"><div class="card-body">
+      <div class="text-muted small">Out of Stock</div>
+      <div class="stat-value text-danger">{{ out_of_stock }}</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="table-card">
+      <div class="p-3 border-bottom fw-semibold">Stock by Category</div>
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Category</th><th class="text-end">Units</th><th class="text-end">Value</th></tr></thead>
+        <tbody>
+          {% for row in by_category %}
+          <tr>
+            <td>{{ row.category }}</td>
+            <td class="text-end">{{ "%.1f"|format(row.units) }}</td>
+            <td class="text-end">${{ "%.2f"|format(row.value) }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="3" class="text-muted text-center py-3">No inventory yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="table-card">
+      <div class="p-3 border-bottom fw-semibold">Needs Attention</div>
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Product</th><th>Location</th><th class="text-end">Qty</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for item in low_items %}
+          <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.location_name }}</td>
+            <td class="text-end">{{ item.qty_on_hand }}</td>
+            <td>{{ item.status }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="text-muted text-center py-3">All good</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
