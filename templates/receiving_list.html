@@ -6,7 +6,7 @@
   <a href="{{ url_for('receiving_add') }}" class="btn btn-success">New Receipt</a>
 </div>
 <div class="table-card">
-<table class="table table-hover mb-0">
+<table class="table table-hover mb-0 align-middle">
 <thead><tr><th>ID</th><th>Date</th><th>Supplier</th><th>Product</th><th>Batch</th><th>Location</th><th class="text-end">Qty</th><th class="text-end">Total</th></tr></thead>
 <tbody>
 {% for r in records %}
@@ -14,7 +14,14 @@
   <td>{{ r.receipt_id }}</td>
   <td>{{ r.date }}</td>
   <td>{{ r.supplier or '—' }}</td>
-  <td>{{ r.product_name or '—' }}</td>
+  <td>
+    <div style="display:flex; align-items:center; gap:10px;">
+      {% if r.image_url %}
+        <img src="{{ url_for('product_image', filename=r.image_url) }}" alt="" style="height:40px;width:40px;object-fit:cover;border-radius:8px;">
+      {% endif %}
+      <span>{{ r.product_name or '—' }}</span>
+    </div>
+  </td>
   <td>{{ r.batch_lot or '—' }}</td>
   <td>{{ r.location_name or '—' }}</td>
   <td class="text-end">{{ r.qty_received }}</td>
