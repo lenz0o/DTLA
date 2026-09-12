@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Inventory{% endblock %}
+{% block content %}
+<h2 class="mb-4">Current Inventory</h2>
+<div class="table-card">
+<table class="table table-hover mb-0">
+<thead><tr><th>SKU</th><th>Product</th><th>Category</th><th>Batch</th><th>Location</th><th class="text-end">Qty</th><th>Status</th></tr></thead>
+<tbody>
+{% for i in items %}
+<tr>
+  <td>{{ i.sku }}</td>
+  <td>{{ i.name }}</td>
+  <td>{{ i.category }}</td>
+  <td>{{ i.batch_lot or '—' }}</td>
+  <td>{{ i.location_name }}</td>
+  <td class="text-end">{{ i.qty_on_hand }} {{ i.unit }}</td>
+  <td>{{ i.status }}</td>
+</tr>
+{% else %}
+<tr><td colspan="7" class="text-center text-muted py-4">No inventory yet. Use Receiving to add stock.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}
