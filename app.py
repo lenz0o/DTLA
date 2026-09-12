@@ -378,7 +378,7 @@ def product_image(filename):
 def inventory():
     db = get_db()
     rows = db.execute("""
-        SELECT i.*, p.sku, p.name, p.category, p.unit, p.reorder_level, l.name as location_name
+        SELECT i.*, p.sku, p.name, p.category, p.unit, p.reorder_level, p.image_url, l.name as location_name
         FROM inventory i
         JOIN products p ON p.id = i.product_id
         JOIN locations l ON l.id = i.location_id
@@ -391,7 +391,7 @@ def inventory():
 def receiving_list():
     db = get_db()
     rows = db.execute("""
-        SELECT r.*, p.sku, p.name as product_name, l.name as location_name
+        SELECT r.*, p.sku, p.name as product_name, p.image_url, l.name as location_name
         FROM receiving r
         LEFT JOIN products p ON p.id = r.product_id
         LEFT JOIN locations l ON l.id = r.location_id
@@ -430,7 +430,7 @@ def receiving_add():
 def transfers_list():
     db = get_db()
     rows = db.execute("""
-        SELECT t.*, p.sku, p.name as product_name, l.name as from_location
+        SELECT t.*, p.sku, p.name as product_name, p.image_url, l.name as from_location
         FROM transfers_sales t
         LEFT JOIN products p ON p.id = t.product_id
         LEFT JOIN locations l ON l.id = t.from_location_id
@@ -480,7 +480,7 @@ def transfers_add():
 def waste_list():
     db = get_db()
     rows = db.execute("""
-        SELECT w.*, p.sku, p.name as product_name, l.name as location_name
+        SELECT w.*, p.sku, p.name as product_name, p.image_url, l.name as location_name
         FROM waste_adjustments w
         LEFT JOIN products p ON p.id = w.product_id
         LEFT JOIN locations l ON l.id = w.location_id
