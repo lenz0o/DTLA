@@ -9,7 +9,6 @@
       url("{{ url_for('static', filename='BDE18CB5-3050-4CA1-90AA-C4AE2507D6A5.PNG') }}") center center / cover no-repeat;
     min-height: 100vh;
     color: #fff;
-    font-family: Georgia, "Times New Roman", serif;
   }
   .login-wrap {
     min-height: 100vh;
@@ -19,28 +18,10 @@
     padding: 24px;
     position: relative;
   }
-  .login-box {
-    width: 100%;
-    max-width: 420px;
-    text-align: center;
-  }
-  .logo {
-    width: 170px;
-    height: 170px;
-    object-fit: contain;
-    margin-bottom: 18px;
-  }
-  .login-box h1 {
-    font-size: 48px;
-    font-weight: 500;
-    margin: 0;
-  }
-  .subtitle {
-    letter-spacing: 4px;
-    font-size: 12px;
-    color: #ddd;
-    margin: 10px 0 22px;
-  }
+  .login-box { width: 100%; max-width: 420px; text-align: center; }
+  .logo { width: 170px; height: 170px; object-fit: contain; margin-bottom: 18px; }
+  .login-box h1 { font-size: 48px; font-weight: 500; margin: 0; }
+  .subtitle { letter-spacing: 4px; font-size: 12px; color: #ddd; margin: 10px 0 22px; }
   .card-dark {
     background: rgba(12,12,12,.82);
     border: 1px solid rgba(201,162,39,.35);
@@ -49,17 +30,8 @@
     text-align: left;
   }
   .card-dark label { font-size: 13px; color: #ccc; }
-  .card-dark input {
-    background: #161616;
-    border: 1px solid #333;
-    color: #fff;
-  }
-  .card-dark input:focus {
-    background: #161616;
-    color: #fff;
-    border-color: #c9a227;
-    box-shadow: none;
-  }
+  .card-dark input { background: #161616; border: 1px solid #333; color: #fff; }
+  .card-dark input:focus { background: #161616; color: #fff; border-color: #c9a227; box-shadow: none; }
   .gold-btn {
     background: linear-gradient(#e0c56a, #c9a227);
     border: none;
@@ -69,21 +41,8 @@
     padding: 12px;
   }
   .gold-btn:hover { background: #d4b24a; color: #111; }
-  .footer-line {
-    margin-top: 16px;
-    text-align: center;
-    letter-spacing: 3px;
-    font-size: 11px;
-    color: #c9a227;
-  }
-  .est {
-    position: absolute;
-    bottom: 20px;
-    right: 28px;
-    font-size: 12px;
-    letter-spacing: 2px;
-    color: #ddd;
-  }
+  .footer-line { margin-top: 16px; text-align: center; letter-spacing: 3px; font-size: 11px; color: #c9a227; }
+  .est { position: absolute; bottom: 20px; right: 28px; font-size: 12px; letter-spacing: 2px; color: #ddd; }
 </style>
 
 <div class="login-wrap">
@@ -91,7 +50,6 @@
     <img class="logo" src="{{ url_for('static', filename='735AC30A-7CB4-4D29-AA0A-AC40A071EE3B.PNG') }}" alt="Farmer Direct">
     <h1>Farmer Direct</h1>
     <div class="subtitle">INVENTORY CONTROL CENTER</div>
-
     <div class="card-dark">
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
