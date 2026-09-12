@@ -2,10 +2,10 @@
 """
 Farmer Direct Inventory System - Production ready version
 """
-
-from flask import Flask, render_template, request, redirect, url_for, flash, g, Response
+from flask import Flask, render_template, request, redirect, url_for, flash, g, Response, send_from_directory
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from datetime import datetime, date, timedelta
 import sqlite3
 import os
@@ -15,11 +15,13 @@ import io
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "farmer-direct-change-this-in-production-2026")
 
-# Use /tmp on cloud platforms so the DB is writable
 if os.environ.get("RENDER") or os.environ.get("DYNO"):
     DATABASE = "/tmp/inventory.db"
+    UPLOAD_DIR = "/tmp/product_images"
 else:
     DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "inventory.db")
+    UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "product_images")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -42,7 +44,6 @@ def init_db():
     """Create tables and seed data if needed."""
     db = sqlite3.connect(DATABASE)
     db.execute("PRAGMA foreign_keys = ON")
-
     db.executescript("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -142,8 +143,11 @@ def init_db():
     );
     """)
     db.commit()
-
-    # Seed only if empty
+    try:
+        db.execute("ALTER TABLE products ADD COLUMN image_url TEXT")
+        db.commit()
+    except Exception:
+        pass
     if db.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0:
         users = [
             ("admin", generate_password_hash("admin123"), "Administrator", "admin"),
@@ -154,7 +158,6 @@ def init_db():
         ]
         for u in users:
             db.execute("INSERT INTO users (username, password_hash, full_name, role) VALUES (?,?,?,?)", u)
-
         for loc in [
             ("Vault A", "Main Storage", "Secured Storage"),
             ("Vault B", "Finished Goods", "Secured Storage"),
@@ -162,7 +165,6 @@ def init_db():
             ("Retail", "Sales Floor", "Retail Display"),
         ]:
             db.execute("INSERT INTO locations (name, area, storage_type, active) VALUES (?,?,?,1)", loc)
-
         products = [
             ("FLW-001", "Blue Dream", "Flower", "Indoor", 3.5, "g", 20, 25.0, 45.0),
             ("FLW-002", "Ice Cream", "Flower", "Outdoor", 3.5, "g", 20, 22.0, 40.0),
@@ -175,14 +177,13 @@ def init_db():
             ("PKG-001", "Exit Bag", "Packaging", "Packaging", 1.0, "ea", 100, 0.35, 0.75),
         ]
         for p in products:
-            db.execute("""INSERT INTO products 
+            db.execute("""INSERT INTO products
                 (sku, name, category, product_type, unit_size, unit, reorder_level, unit_cost, retail_price, active)
                 VALUES (?,?,?,?,?,?,?,?,?,1)""", p)
         db.commit()
         print("Database seeded with default users and products.")
     db.close()
 
-# Initialize DB as soon as the app starts
 with app.app_context():
     try:
         init_db()
@@ -235,7 +236,15 @@ def update_stock(db, product_id, batch_lot, location_id, qty_delta, unit_cost=No
         WHERE id = ?""", (inv_id,))
     db.commit()
 
-# ---------- Routes ----------
+def save_product_image(file_storage, sku):
+    if not file_storage or not file_storage.filename:
+        return None
+    ext = os.path.splitext(file_storage.filename)[1].lower()
+    if ext not in [".png", ".jpg", ".jpeg", ".webp", ".gif"]:
+        return None
+    name = secure_filename(f"{sku}_{datetime.now().strftime('%Y%m%d%H%M%S')}{ext}")
+    file_storage.save(os.path.join(UPLOAD_DIR, name))
+    return name
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -269,14 +278,12 @@ def dashboard():
     total_units = db.execute("SELECT COALESCE(SUM(qty_on_hand), 0) FROM inventory WHERE qty_on_hand > 0").fetchone()[0]
     low_stock = db.execute("SELECT COUNT(*) FROM inventory WHERE status = 'LOW STOCK'").fetchone()[0]
     out_of_stock = db.execute("SELECT COUNT(*) FROM inventory WHERE status = 'OUT OF STOCK' OR qty_on_hand <= 0").fetchone()[0]
-
     by_category = db.execute("""
         SELECT p.category, COALESCE(SUM(i.qty_on_hand * i.unit_cost), 0) as value,
                COALESCE(SUM(i.qty_on_hand), 0) as units
         FROM inventory i JOIN products p ON p.id = i.product_id
         WHERE i.qty_on_hand > 0 GROUP BY p.category ORDER BY value DESC
     """).fetchall()
-
     recent_receiving = db.execute("""
         SELECT r.*, p.name as product_name, p.sku, l.name as location_name
         FROM receiving r
@@ -284,7 +291,6 @@ def dashboard():
         LEFT JOIN locations l ON l.id = r.location_id
         ORDER BY r.date DESC, r.id DESC LIMIT 5
     """).fetchall()
-
     low_items = db.execute("""
         SELECT i.*, p.sku, p.name, p.reorder_level, l.name as location_name
         FROM inventory i
@@ -293,7 +299,6 @@ def dashboard():
         WHERE i.status IN ('LOW STOCK', 'OUT OF STOCK')
         ORDER BY i.qty_on_hand ASC LIMIT 10
     """).fetchall()
-
     return render_template("dashboard.html", total_value=total_value, total_units=total_units,
                            low_stock=low_stock, out_of_stock=out_of_stock, by_category=by_category,
                            recent_receiving=recent_receiving, low_items=low_items)
@@ -310,16 +315,19 @@ def products():
 def product_add():
     if request.method == "POST":
         db = get_db()
+        sku = request.form["sku"].strip().upper()
+        image_url = save_product_image(request.files.get("image_file"), sku) or ""
         try:
             db.execute("""INSERT INTO products (sku, name, category, product_type, unit_size, unit,
-                supplier, reorder_level, unit_cost, retail_price, notes, active)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
-                (request.form["sku"].strip().upper(), request.form["name"].strip(),
+                supplier, reorder_level, unit_cost, retail_price, notes, active, image_url)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (sku, request.form["name"].strip(),
                  request.form["category"], request.form.get("product_type", ""),
                  float(request.form.get("unit_size") or 0), request.form.get("unit", "g"),
                  request.form.get("supplier", ""), float(request.form.get("reorder_level") or 0),
                  float(request.form.get("unit_cost") or 0), float(request.form.get("retail_price") or 0),
-                 request.form.get("notes", ""), 1 if request.form.get("active") else 0))
+                 request.form.get("notes", ""), 1 if request.form.get("active") else 0,
+                 image_url))
             db.commit()
             flash("Product added.", "success")
             return redirect(url_for("products"))
@@ -337,19 +345,33 @@ def product_edit(pid):
         flash("Product not found.", "danger")
         return redirect(url_for("products"))
     if request.method == "POST":
+        sku = request.form["sku"].strip().upper()
+        image_url = ""
+        try:
+            image_url = product["image_url"] or ""
+        except Exception:
+            image_url = ""
+        uploaded = save_product_image(request.files.get("image_file"), sku)
+        if uploaded:
+            image_url = uploaded
         db.execute("""UPDATE products SET sku=?, name=?, category=?, product_type=?, unit_size=?, unit=?,
-            supplier=?, reorder_level=?, unit_cost=?, retail_price=?, notes=?, active=? WHERE id=?""",
-            (request.form["sku"].strip().upper(), request.form["name"].strip(),
+            supplier=?, reorder_level=?, unit_cost=?, retail_price=?, notes=?, active=?, image_url=? WHERE id=?""",
+            (sku, request.form["name"].strip(),
              request.form["category"], request.form.get("product_type", ""),
              float(request.form.get("unit_size") or 0), request.form.get("unit", "g"),
              request.form.get("supplier", ""), float(request.form.get("reorder_level") or 0),
              float(request.form.get("unit_cost") or 0), float(request.form.get("retail_price") or 0),
-             request.form.get("notes", ""), 1 if request.form.get("active") else 0, pid))
+             request.form.get("notes", ""), 1 if request.form.get("active") else 0,
+             image_url, pid))
         db.commit()
         flash("Product updated.", "success")
         return redirect(url_for("products"))
     categories = ["Flower", "Pre-Roll", "Concentrate", "Edible", "Vape", "Packaging"]
     return render_template("product_form.html", product=product, categories=categories)
+
+@app.route("/product-image/<filename>")
+def product_image(filename):
+    return send_from_directory(UPLOAD_DIR, filename)
 
 @app.route("/inventory")
 @login_required
@@ -430,13 +452,11 @@ def transfers_add():
         unit_cost = float(request.form.get("unit_cost") or 0)
         value = qty * unit_cost
         tx_type = request.form["type"]
-
         inv = db.execute("SELECT qty_on_hand FROM inventory WHERE product_id=? AND batch_lot=? AND location_id=?",
                          (product_id, batch, from_loc)).fetchone()
         if not inv or inv["qty_on_hand"] < qty:
             flash("Not enough stock in that location/batch.", "danger")
             return redirect(url_for("transfers_add"))
-
         db.execute("""INSERT INTO transfers_sales (transaction_id, date, type, from_location_id,
             to_location_or_customer, product_id, batch_lot, qty_out, unit_cost, value_moved,
             handled_by, reference_number, notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
@@ -525,7 +545,6 @@ def users_page():
     rows = db.execute("SELECT id, username, full_name, role, active FROM users ORDER BY username").fetchall()
     return render_template("users.html", users=rows)
 
-# Health check for Render
 @app.route("/health")
 def health():
     return "OK", 200
@@ -625,7 +644,6 @@ def download_report(period):
         mimetype="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
-
 
 if __name__ == "__main__":
     init_db()
