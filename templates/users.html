@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<h2 class="mb-4">Users</h2>
+<div class="table-card">
+<table class="table table-hover mb-0">
+<thead><tr><th>Username</th><th>Name</th><th>Role</th></tr></thead>
+<tbody>
+{% for u in users %}
+<tr>
+  <td>{{ u.username }}</td>
+  <td>{{ u.full_name or '—' }}</td>
+  <td>{{ u.role }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}
