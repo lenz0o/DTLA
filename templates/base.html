@@ -11,33 +11,47 @@
     html, body, h1, h2, h3, h4, h5, .brand, .nav-link, .btn, .form-control, .form-label, table {
       font-family: "Playfair Display", Georgia, serif !important;
     }
-    body { background: #f4f6f9; min-height: 100vh; }
+    body { background: #111111; color: #f3efe3; min-height: 100vh; }
+    h2 { color: #f3d37a; letter-spacing: .04em; }
     .sidebar {
-      width: 240px;
-      background: #0b0b0b;
-      min-height: 100vh;
-      position: fixed;
-      top: 0; left: 0;
-      padding-top: 1rem;
-      z-index: 1040;
+      width: 240px; background: #0b0b0b; min-height: 100vh;
+      position: fixed; top: 0; left: 0; padding-top: 1rem; z-index: 1040;
+      border-right: 1px solid #c9a22733;
     }
     .sidebar .nav-link { color: #e8d48a; border-radius: .375rem; margin: .15rem .75rem; padding: .55rem .9rem; }
     .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #c9a227; color: #000; }
     .sidebar .brand { color: #f3d37a; font-weight: 700; padding: .5rem 1.25rem 1.25rem; }
     .main { margin-left: 240px; padding: 1.5rem; }
-    .stat-card, .table-card { background: #fff; border-radius: .75rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-    .stat-value { font-size: 1.75rem; font-weight: 700; }
-    .table-card { overflow-x: auto; }
+    .stat-card, .table-card, .card {
+      background: #1a1a1a !important;
+      border: 1px solid #c9a22733 !important;
+      border-radius: .9rem;
+      color: #f3efe3;
+    }
+    .stat-value { font-size: 1.75rem; font-weight: 700; color: #f3d37a; }
+    .table { color: #f3efe3; }
+    .table thead th { color: #c9a227; border-color: #333; }
+    .table td { border-color: #2a2a2a; vertical-align: middle; }
+    .table-hover tbody tr:hover { background: #222; }
+    .form-control, .form-select {
+      background: #161616; border: 1px solid #333; color: #fff;
+    }
+    .form-control:focus, .form-select:focus {
+      background: #161616; color: #fff; border-color: #c9a227; box-shadow: none;
+    }
+    .btn-success {
+      background: linear-gradient(#e0c56a, #c9a227);
+      border: none; color: #111; font-weight: 700;
+    }
+    .btn-success:hover { background: #d4b24a; color: #111; }
+    .btn-outline-secondary { border-color: #c9a227; color: #c9a227; }
+    .btn-outline-secondary:hover { background: #c9a227; color: #111; }
+    .text-muted { color: #b8b0a0 !important; }
+    .alert { border: none; }
     .mobile-top {
-      display: none;
-      background: #0b0b0b;
-      color: #f3d37a;
-      padding: 10px 14px;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 1030;
+      display: none; background: #0b0b0b; color: #f3d37a;
+      padding: 10px 14px; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 1030; border-bottom: 1px solid #c9a22733;
     }
     .mobile-top img { height: 36px; width: 36px; object-fit: contain; }
     @media (max-width: 768px) {
@@ -56,29 +70,27 @@
       <img src="{{ url_for('static', filename='735AC30A-7CB4-4D29-AA0A-AC40A071EE3B.PNG') }}" alt="Farmer Direct">
       <strong>Farmer Direct</strong>
     </div>
-    <button class="btn btn-sm" style="background:#c9a227; color:#000;" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu">
-      Menu
-    </button>
+    <button class="btn btn-sm btn-success" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu">Menu</button>
   </div>
 
-  <div class="offcanvas offcanvas-start text-bg-dark" tabindex="-1" id="mobileMenu" style="background:#0b0b0b;">
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu" style="background:#0b0b0b;">
     <div class="offcanvas-header">
       <h5 class="offcanvas-title" style="color:#f3d37a;">Menu</h5>
       <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body">
-      <a class="nav-link text-warning py-2" href="{{ url_for('dashboard') }}">Dashboard</a>
-      <a class="nav-link text-warning py-2" href="{{ url_for('inventory') }}">Inventory</a>
-      <a class="nav-link text-warning py-2" href="{{ url_for('products') }}">Products</a>
-      <a class="nav-link text-warning py-2" href="{{ url_for('receiving_list') }}">Receiving</a>
-      <a class="nav-link text-warning py-2" href="{{ url_for('transfers_list') }}">Sales / Transfers</a>
-      <a class="nav-link text-warning py-2" href="{{ url_for('waste_list') }}">Waste / Adjust</a>
-      <a class="nav-link text-warning py-2" href="{{ url_for('locations') }}">Locations</a>
-      <a class="nav-link text-warning py-2" href="/reports">Reports</a>
+      <a class="nav-link py-2" href="{{ url_for('dashboard') }}" style="color:#e8d48a;">Dashboard</a>
+      <a class="nav-link py-2" href="{{ url_for('inventory') }}" style="color:#e8d48a;">Inventory</a>
+      <a class="nav-link py-2" href="{{ url_for('products') }}" style="color:#e8d48a;">Products</a>
+      <a class="nav-link py-2" href="{{ url_for('receiving_list') }}" style="color:#e8d48a;">Receiving</a>
+      <a class="nav-link py-2" href="{{ url_for('transfers_list') }}" style="color:#e8d48a;">Sales / Transfers</a>
+      <a class="nav-link py-2" href="{{ url_for('waste_list') }}" style="color:#e8d48a;">Waste / Adjust</a>
+      <a class="nav-link py-2" href="{{ url_for('locations') }}" style="color:#e8d48a;">Locations</a>
+      <a class="nav-link py-2" href="/reports" style="color:#e8d48a;">Reports</a>
       {% if current_user.role == 'admin' %}
-      <a class="nav-link text-warning py-2" href="{{ url_for('users_page') }}">Users</a>
+      <a class="nav-link py-2" href="{{ url_for('users_page') }}" style="color:#e8d48a;">Users</a>
       {% endif %}
-      <a class="nav-link text-warning py-2" href="{{ url_for('logout') }}">Logout</a>
+      <a class="nav-link py-2" href="{{ url_for('logout') }}" style="color:#e8d48a;">Logout</a>
     </div>
   </div>
 
@@ -102,7 +114,7 @@
         {% endif %}
         <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
       </ul>
-      <div class="px-3 mt-4 text-muted small" style="color:#c9a227 !important;">
+      <div class="px-3 mt-4" style="color:#c9a227;">
         {{ current_user.full_name or current_user.username }}
       </div>
     </nav>
