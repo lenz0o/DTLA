@@ -237,6 +237,29 @@ def update_stock(db, product_id, batch_lot, location_id, qty_delta, unit_cost=No
     db.commit()
 
 
+
+def next_sku(db, raw, category=""):
+    raw = (raw or "").strip().upper()
+    prefix = raw.split("-")[0] if raw else ""
+    prefix = "".join(ch for ch in prefix if ch.isalnum())[:3]
+    if not prefix:
+        prefixes = {
+            "Flower": "FLW",
+            "Pre-Roll": "IPR",
+            "Concentrate": "CON",
+            "Edible": "ED",
+            "Vape": "VAP",
+            "Packaging": "PKG",
+        }
+        prefix = prefixes.get(category, "FD")
+    rows = db.execute("SELECT sku FROM products WHERE sku LIKE ?", (prefix + "-%",)).fetchall()
+    max_n = 0
+    for r in rows:
+        part = (r["sku"] or "").split("-")[-1]
+        if part.isdigit():
+            max_n = max(max_n, int(part))
+    return f"{prefix}-{max_n + 1:03d}"
+
 def require_admin():
     return current_user.is_authenticated and current_user.role == "admin"
 
@@ -322,7 +345,7 @@ def product_add():
         return redirect(url_for("products"))
     if request.method == "POST":
         db = get_db()
-        sku = request.form["sku"].strip().upper()
+        sku = next_sku(db, request.form.get("sku", ""), request.form.get("category", ""))
         image_url = save_product_image(request.files.get("image_file"), sku) or ""
         try:
             db.execute("""INSERT INTO products (sku, name, category, product_type, unit_size, unit,
@@ -336,7 +359,7 @@ def product_add():
                  request.form.get("notes", ""), 1 if request.form.get("active") else 0,
                  image_url))
             db.commit()
-            flash("Product added.", "success")
+            flash(f"Product added. SKU: {sku}", "success")
             return redirect(url_for("products"))
         except sqlite3.IntegrityError:
             flash("SKU already exists.", "danger")
