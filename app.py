@@ -236,6 +236,10 @@ def update_stock(db, product_id, batch_lot, location_id, qty_delta, unit_cost=No
         WHERE id = ?""", (inv_id,))
     db.commit()
 
+
+def require_admin():
+    return current_user.is_authenticated and current_user.role == "admin"
+
 def save_product_image(file_storage, sku):
     if not file_storage or not file_storage.filename:
         return None
@@ -313,6 +317,9 @@ def products():
 @app.route("/products/add", methods=["GET", "POST"])
 @login_required
 def product_add():
+    if not require_admin():
+        flash("Admin access required.", "warning")
+        return redirect(url_for("products"))
     if request.method == "POST":
         db = get_db()
         sku = request.form["sku"].strip().upper()
@@ -339,6 +346,9 @@ def product_add():
 @app.route("/products/<int:pid>/edit", methods=["GET", "POST"])
 @login_required
 def product_edit(pid):
+    if not require_admin():
+        flash("Admin access required.", "warning")
+        return redirect(url_for("products"))
     db = get_db()
     product = db.execute("SELECT * FROM products WHERE id = ?", (pid,)).fetchone()
     if not product:
@@ -523,6 +533,9 @@ def locations():
 @app.route("/locations/add", methods=["POST"])
 @login_required
 def location_add():
+    if not require_admin():
+        flash("Admin access required.", "warning")
+        return redirect(url_for("locations"))
     db = get_db()
     name = request.form.get("name", "").strip()
     if name:
@@ -552,11 +565,17 @@ def health():
 @app.route("/reports")
 @login_required
 def reports():
+    if not require_admin():
+        flash("Admin access required.", "warning")
+        return redirect(url_for("dashboard"))
     return render_template("reports.html")
 
 @app.route("/reports/download/<period>")
 @login_required
 def download_report(period):
+    if not require_admin():
+        flash("Admin access required.", "warning")
+        return redirect(url_for("dashboard"))
     today = date.today()
     if period == "daily":
         start = today
