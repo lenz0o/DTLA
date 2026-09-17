@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Dashboard – Farmer Direct{% endblock %}
 {% block content %}
-<h2 class="mb-4">Inventory Control Center</h2>
-
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <h2 class="mb-0">Inventory Control Center</h2>
+  <div class="text-end">
+    <div class="small text-muted">Last modified</div>
+    <div class="fw-semibold" id="dash-last-ago" style="color:#f3d37a;">{{ last_activity.ago if last_activity else '—' }}</div>
+    <div class="small text-muted" id="dash-last-display">{{ last_activity.display if last_activity else '' }}</div>
+  </div>
+</div>
 <div class="row g-3 mb-4">
   <div class="col-6 col-md-3">
     <div class="card stat-card"><div class="card-body">
@@ -29,7 +35,6 @@
     </div></div>
   </div>
 </div>
-
 <div class="row g-3 mb-4">
   <div class="col-lg-7">
     <div class="table-card p-3">
@@ -44,7 +49,6 @@
     </div>
   </div>
 </div>
-
 <div class="row g-3">
   <div class="col-lg-6">
     <div class="table-card">
@@ -86,13 +90,11 @@
     </div>
   </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   const labels = [{% for row in by_category %}"{{ row.category }}"{% if not loop.last %},{% endif %}{% endfor %}];
   const values = [{% for row in by_category %}{{ row.value or 0 }}{% if not loop.last %},{% endif %}{% endfor %}];
   const colors = ["#c9a227","#1a5f2a","#0b1f3a","#8b1e3f","#4b5563","#b45309"];
-
   if (labels.length) {
     new Chart(document.getElementById("barChart"), {
       type: "bar",
