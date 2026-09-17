@@ -4,7 +4,18 @@
 <h2 class="mb-4">Current Inventory</h2>
 <div class="table-card">
 <table class="table table-hover mb-0 align-middle">
-<thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Batch</th><th>Location</th><th class="text-end">Qty</th><th>Status</th></tr></thead>
+<thead>
+  <tr>
+    <th>Product</th>
+    <th>SKU</th>
+    <th>Category</th>
+    <th>Batch</th>
+    <th>Location</th>
+    <th class="text-end">Qty</th>
+    <th>Status</th>
+    <th>Last modified</th>
+  </tr>
+</thead>
 <tbody>
 {% for i in items %}
 <tr>
@@ -13,7 +24,7 @@
       {% if i.image_url %}
         <img src="{{ url_for('product_image', filename=i.image_url) }}" alt="" style="height:48px;width:48px;object-fit:cover;border-radius:8px;">
       {% else %}
-        <div style="height:48px;width:48px;background:#eee;border-radius:8px;"></div>
+        <div style="height:48px;width:48px;background:#222;border-radius:8px;"></div>
       {% endif %}
       <strong>{{ i.name }}</strong>
     </div>
@@ -24,9 +35,13 @@
   <td>{{ i.location_name }}</td>
   <td class="text-end">{{ i.qty_on_hand }} {{ i.unit }}</td>
   <td>{{ i.status }}</td>
+  <td class="small text-muted">
+    {{ i.updated_at|ago }}
+    <div style="font-size:11px;">{{ i.updated_at|when }}</div>
+  </td>
 </tr>
 {% else %}
-<tr><td colspan="7" class="text-center text-muted py-4">No inventory yet. Use Receiving to add stock.</td></tr>
+<tr><td colspan="8" class="text-center text-muted py-4">No inventory yet. Use Receiving to add stock.</td></tr>
 {% endfor %}
 </tbody>
 </table>
