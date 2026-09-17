@@ -2,7 +2,7 @@
 """
 Farmer Direct Inventory System - Production ready version
 """
-from flask import Flask, render_template, request, redirect, url_for, flash, g, Response, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, g, Response, send_from_directory, jsonify
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -143,8 +143,17 @@ def init_db():
     );
     """)
     db.commit()
+    for col_sql in (
+        "ALTER TABLE products ADD COLUMN image_url TEXT",
+        "ALTER TABLE products ADD COLUMN updated_at TEXT",
+    ):
+        try:
+            db.execute(col_sql)
+            db.commit()
+        except Exception:
+            pass
     try:
-        db.execute("ALTER TABLE products ADD COLUMN image_url TEXT")
+        db.execute("UPDATE products SET updated_at = COALESCE(updated_at, created_at, CURRENT_TIMESTAMP) WHERE updated_at IS NULL")
         db.commit()
     except Exception:
         pass
@@ -219,6 +228,73 @@ def get_or_create_inventory(db, product_id, batch_lot, location_id, unit_cost=0)
     )
     db.commit()
     return cur.lastrowid
+
+
+def parse_ts(value):
+    if not value:
+        return None
+    text = str(value).replace("Z", "")
+    for fmt in ("%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(text[:26], fmt)
+        except ValueError:
+            continue
+    return None
+
+def format_ago(dt):
+    if not dt:
+        return "No activity yet"
+    seconds = max(0, int((datetime.utcnow() - dt).total_seconds()))
+    if seconds < 10:
+        return "just now"
+    if seconds < 60:
+        return f"{seconds}s ago"
+    minutes = seconds // 60
+    if minutes < 60:
+        return f"{minutes} min ago"
+    hours = minutes // 60
+    if hours < 24:
+        return f"{hours} hr ago"
+    days = hours // 24
+    return f"{days} day{'s' if days != 1 else ''} ago"
+
+def get_last_activity(db=None):
+    db = db or get_db()
+    row = db.execute("""
+        SELECT MAX(ts) AS last_ts FROM (
+            SELECT MAX(created_at) AS ts FROM receiving
+            UNION ALL
+            SELECT MAX(created_at) FROM transfers_sales
+            UNION ALL
+            SELECT MAX(created_at) FROM waste_adjustments
+            UNION ALL
+            SELECT MAX(updated_at) FROM inventory
+            UNION ALL
+            SELECT MAX(created_at) FROM products
+            UNION ALL
+            SELECT MAX(updated_at) FROM products
+        )
+    """).fetchone()
+    last_ts = row["last_ts"] if row else None
+    dt = parse_ts(last_ts)
+    display = dt.strftime("%b %d, %Y %I:%M %p") if dt else "—"
+    return {"raw": last_ts, "display": display, "ago": format_ago(dt)}
+
+@app.context_processor
+def inject_last_activity():
+    try:
+        return {"last_activity": get_last_activity()}
+    except Exception:
+        return {"last_activity": {"raw": None, "display": "—", "ago": "—"}}
+
+@app.template_filter("ago")
+def ago_filter(value):
+    return format_ago(parse_ts(value))
+
+@app.template_filter("when")
+def when_filter(value):
+    dt = parse_ts(value)
+    return dt.strftime("%b %d, %I:%M %p") if dt else "—"
 
 def update_stock(db, product_id, batch_lot, location_id, qty_delta, unit_cost=None):
     inv_id = get_or_create_inventory(db, product_id, batch_lot, location_id, unit_cost)
@@ -349,15 +425,15 @@ def product_add():
         image_url = save_product_image(request.files.get("image_file"), sku) or ""
         try:
             db.execute("""INSERT INTO products (sku, name, category, product_type, unit_size, unit,
-                supplier, reorder_level, unit_cost, retail_price, notes, active, image_url)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                supplier, reorder_level, unit_cost, retail_price, notes, active, image_url, updated_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (sku, request.form["name"].strip(),
                  request.form["category"], request.form.get("product_type", ""),
                  float(request.form.get("unit_size") or 0), request.form.get("unit", "g"),
                  request.form.get("supplier", ""), float(request.form.get("reorder_level") or 0),
                  float(request.form.get("unit_cost") or 0), float(request.form.get("retail_price") or 0),
                  request.form.get("notes", ""), 1 if request.form.get("active") else 0,
-                 image_url))
+                 image_url, datetime.now().isoformat()))
             db.commit()
             flash(f"Product added. SKU: {sku}", "success")
             return redirect(url_for("products"))
@@ -388,14 +464,14 @@ def product_edit(pid):
         if uploaded:
             image_url = uploaded
         db.execute("""UPDATE products SET sku=?, name=?, category=?, product_type=?, unit_size=?, unit=?,
-            supplier=?, reorder_level=?, unit_cost=?, retail_price=?, notes=?, active=?, image_url=? WHERE id=?""",
+            supplier=?, reorder_level=?, unit_cost=?, retail_price=?, notes=?, active=?, image_url=?, updated_at=? WHERE id=?""",
             (sku, request.form["name"].strip(),
              request.form["category"], request.form.get("product_type", ""),
              float(request.form.get("unit_size") or 0), request.form.get("unit", "g"),
              request.form.get("supplier", ""), float(request.form.get("reorder_level") or 0),
              float(request.form.get("unit_cost") or 0), float(request.form.get("retail_price") or 0),
              request.form.get("notes", ""), 1 if request.form.get("active") else 0,
-             image_url, pid))
+             image_url, datetime.now().isoformat(), pid))
         db.commit()
         flash("Product updated.", "success")
         return redirect(url_for("products"))
@@ -580,6 +656,11 @@ def users_page():
     db = get_db()
     rows = db.execute("SELECT id, username, full_name, role, active FROM users ORDER BY username").fetchall()
     return render_template("users.html", users=rows)
+
+@app.route("/api/last-activity")
+@login_required
+def api_last_activity():
+    return jsonify(get_last_activity())
 
 @app.route("/health")
 def health():
