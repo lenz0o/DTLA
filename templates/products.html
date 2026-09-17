@@ -7,7 +7,18 @@
 </div>
 <div class="table-card">
 <table class="table table-hover mb-0 align-middle">
-<thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Type</th><th class="text-end">Cost</th><th class="text-end">Retail</th><th></th></tr></thead>
+<thead>
+  <tr>
+    <th>Product</th>
+    <th>SKU</th>
+    <th>Category</th>
+    <th>Type</th>
+    <th class="text-end">Cost</th>
+    <th class="text-end">Retail</th>
+    <th>Last modified</th>
+    <th></th>
+  </tr>
+</thead>
 <tbody>
 {% for p in products %}
 <tr>
@@ -16,7 +27,7 @@
       {% if p.image_url %}
         <img src="{{ url_for('product_image', filename=p.image_url) }}" alt="" style="height:56px;width:56px;object-fit:cover;border-radius:8px; flex-shrink:0;">
       {% else %}
-        <div style="height:56px;width:56px;background:#eee;border-radius:8px; flex-shrink:0;"></div>
+        <div style="height:56px;width:56px;background:#222;border-radius:8px; flex-shrink:0;"></div>
       {% endif %}
       <strong>{{ p.name }}</strong>
     </div>
@@ -26,6 +37,10 @@
   <td>{{ p.product_type or '—' }}</td>
   <td class="text-end">${{ "%.2f"|format(p.unit_cost or 0) }}</td>
   <td class="text-end">${{ "%.2f"|format(p.retail_price or 0) }}</td>
+  <td class="small text-muted">
+    {{ (p.updated_at or p.created_at)|ago }}
+    <div style="font-size:11px;">{{ (p.updated_at or p.created_at)|when }}</div>
+  </td>
   <td><a href="{{ url_for('product_edit', pid=p.id) }}" class="btn btn-sm btn-outline-secondary">Edit</a></td>
 </tr>
 {% endfor %}
